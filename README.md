@@ -15,12 +15,7 @@
 * **Scraping:** Playwright, BeautifulSoup4
 * **Data Science:** Pandas
 * **Automation:** GitHub Actions
-
-## ⚙️ Installation
-  1. Clone the repo:
-   ```bash
-   git clone [https://github.com/momcilosavic1234567-creator/InsightScraper.git] (https://github.com/momcilosavic1234567-creator/InsightScraper.git)
-
+  
 ## 🗺️ Roadmap & Future Enhancements
 This project is under active development. Here are the planned features:
 
@@ -38,3 +33,9 @@ Contributions are what make the open-source community such an amazing place to l
 3. Commit your Changes (`git commit -m 'Add some AmazingFeature'`)
 4. Push to the Branch (`git push origin feature/AmazingFeature`)
 5. Open a Pull Request
+## ⚙️ Installation
+  1. Clone the repo:
+   ```bash
+   git clone [https://github.com/momcilosavic1234567-creator/InsightScraper.git] (https://github.com/momcilosavic1234567-creator/InsightScraper.git)
+
+
