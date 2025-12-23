@@ -21,11 +21,20 @@
    ```bash
    git clone [https://github.com/momcilosavic1234567-creator/InsightScraper.git] (https://github.com/momcilosavic1234567-creator/InsightScraper.git)
 
-## 🗺️ Roadmap
-Check out what's planned for future releases:
+## 🗺️ Roadmap & Future Enhancements
+This project is under active development. Here are the planned features:
 
-* **Phase 1: Multi-Site Support** - Add engine modules for LinkedIn and Glassdoor.
-* **Phase 2: Data Visualization** - Create a simple Streamlit dashboard to visualize salary trends.
-* **Phase 3: Proxy Integration** - Implement rotating proxies to avoid IP rate-limiting.
-* **Phase 4: Notification System** - Add Discord/Slack webhooks to alert when a high-value job is found.
-* **Phase 5: Dockerization** - Containerize the application for easier deployment.
+- [ ] **Multi-Source Support:** Add engines for LinkedIn and Glassdoor.
+- [ ] **Proxy Rotation:** Implement proxy logic to prevent IP rate-limiting.
+- [ ] **Data Visualization:** Create a simple Streamlit dashboard to visualize job trends.
+- [ ] **Database Integration:** Move from CSV files to a PostgreSQL database.
+- [ ] **Discord/Slack Notifications:** Get an alert whenever a high-paying job is found.
+
+## 🤝 Contributing
+Contributions are what make the open-source community such an amazing place to learn, inspire, and create. 
+
+1. Fork the Project
+2. Create your Feature Branch (`git checkout -b feature/AmazingFeature`)
+3. Commit your Changes (`git commit -m 'Add some AmazingFeature'`)
+4. Push to the Branch (`git push origin feature/AmazingFeature`)
+5. Open a Pull Request
