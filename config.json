@@ -1,15 +1,15 @@
 {
     "project_name": "InsightScraper",
-    "target_url": "https://www.google.com/search?q=software+engineer+jobs",
-    "settings": {
-        "max_retries": 3,
-        "headless": true,
-        "save_format": "both"
-    },
+    "target_url": "https://www.google.com/search?q=python+developer+jobs",
     "selectors": {
-        "card": ".v079hd",
-        "title": ".Yf87Te",
-        "company": ".nJl9id",
-        "location": ".KyS7ub"
+        "job_card": "[role='listitem']",
+        "title": "[role='heading']",
+        "company": "div:nth-child(1)",
+        "location": "div:nth-child(2)"
+    },
+    "settings": {
+        "headless": true,
+        "max_retries": 3,
+        "timeout": 60000
     }
 }
