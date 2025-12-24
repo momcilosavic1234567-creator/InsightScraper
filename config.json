@@ -1,0 +1,15 @@
+{
+    "project_name": "InsightScraper",
+    "target_url": "https://www.google.com/search?q=software+engineer+jobs",
+    "settings": {
+        "max_retries": 3,
+        "headless": true,
+        "save_format": "both"
+    },
+    "selectors": {
+        "card": ".v079hd",
+        "title": ".Yf87Te",
+        "company": ".nJl9id",
+        "location": ".KyS7ub"
+    }
+}

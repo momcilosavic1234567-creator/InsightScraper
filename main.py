@@ -1,45 +1,68 @@
 import asyncio
+import json
+import logging
 import os
 import pandas as pd
 from datetime import datetime
 from scrapers.engine import ScraperEngine
 
-async def main():
-    # 1. configuration
-    TARGET_URL = os.getenv("TARGET_URL", "https://www.google.com/search?q=software+engineer+jobs") # Update this
-    DATA_DIR = "data"
-    TIMESTAMP = datetime.now().strftime("%Y-%m-%d_%H-%M")
-
-    # Ensure the data directory exists
-    if not os.path.exists(DATA_DIR):
-        os.makedirs(DATA_DIR)
-        print(f"Created directory: {DATA_DIR}")
+# Setup logging
+def setup_logger():
+    if not os.path.exists('logs'):
+        os.makedirs('logs')
     
-    # 2. Initialize and Run Scraper
-    print("Starting Scrapper...")
-    engine = ScraperEngine()
-    raw_data = await engine.run(TARGET_URL)
+    logging.basicConfig(
+        level=logging.INFO,
+        format='%(asctime)s - %(levelname)s - %(message)s',
+        handlers=[
+            logging.FileHandler(f"logs/scraper_{datetime.now().strftime('%Y%m%d')}.log"),
+            logging.StreamHandler()
+        ]
+    )
+    return logging.getLogger("InsightScraper")
 
-    if not raw_data:
-        print(" No data collected. Check your selectors or internet connection.")
+# Data management
+def save_data(data, config, logger):
+    if not data:
+        logger.warning("No data found to save.")
         return
+
+    os.makedirs('data', exist_ok=True)
+    df = pd.DataFrame(data)
+    timestamp = datetime.now().strftime("%Y-%m-%d_%H-%M")
     
-    # 3. Process with Pandas
-    df = pd.DataFrame(raw_data)
+    filename = f"data/results_{timestamp}.csv"
+    df.to_csv(filename, index=False)
+    logger.info(f"✨ Data successfully saved to {filename}")
 
-    # Basic cleaning: remove duplicates or empty rows
-    df.drop_duplicates(inplace=True)
+# Main Execution
+async def run_pipeline():
+    logger = setup_logger()
+    logger.info("Starting InsightScraper Pipeline...")
 
-    # 4. Save to CSV and JSON
-    csv_path = os.path.join(DATA_DIR, f"jobs_{TIMESTAMP}.csv")
-    json_path = os.path.join(DATA_DIR, f"jobs_{TIMESTAMP}.json")
+    # 1. Load Configuration
+    try:
+        with open('config.json', 'r') as f:
+            config = json.load(f)
+        logger.info("Config loaded successfully.")
+    except Exception as e:
+        logger.error(f"Failed to load config: {e}")
+        return
 
-    df.to_csv(csv_path, index=False)
-    df.to_json(json_path, orient="records", indent=True)
+    # 2. Initialize Engine
+    engine = ScraperEngine(config)
 
-    print(f" Success! Saved {len(df)} records to:")
-    print(f" - CSV: {csv_path}")
-    print(f" - JSON: {json_path}")
+    # 3. Extract & Transform
+    try:
+        html = await engine.fetch_page(config['target_url'])
+        scraped_data = engine.parse_data(html)
+        logger.info(f"Successfully scraped {len(scraped_data)} items.")
+        
+        # 4. Load (Save)
+        save_data(scraped_data, config, logger)
+        
+    except Exception as e:
+        logger.error(f"An error occurred during the scrape: {e}")
 
 if __name__ == "__main__":
-    asyncio.run(main())
+    asyncio.run(run_pipeline())
