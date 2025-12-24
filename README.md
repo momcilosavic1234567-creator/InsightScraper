@@ -33,6 +33,15 @@ Contributions are what make the open-source community such an amazing place to l
 3. Commit your Changes (`git commit -m 'Add some AmazingFeature'`)
 4. Push to the Branch (`git push origin feature/AmazingFeature`)
 5. Open a Pull Request
+
+# 🔍 InsightScraper
+
+![Python Version](https://img.shields.io/badge/python-3.13-blue.svg)
+![Build Status](https://github.com/YOUR_USERNAME/YOUR_REPO_NAME/actions/workflows/scrape.yml/badge.svg)
+![Tests](https://img.shields.io/badge/tests-passing-brightgreen)
+![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)
+
+**InsightScraper** is a professional-grade, automated ETL pipeline that tracks [Job/Price] data. Built with a focus on clean code, modularity, and resilience.
 ## ⚙️ Installation
   1. Clone the repo:
    ```bash
