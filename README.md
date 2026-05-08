@@ -2,7 +2,7 @@
 [![Python Version](https://img.shields.io/badge/python-3.10%2B-blue)](https://www.python.org/)
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
 
-**Project Name** is a robust web scraping solution designed to extract [Type of Data] from [Target Site]. It handles dynamic content, bypasses common rate limits, and exports clean, structured data for analysis.
+**InsightScrapper** is a robust web scraping solution designed to extract any type of data from targeted site. It handles dynamic content, bypasses common rate limits, and exports clean, structured data for analysis.
 
 ## ✨ Key Features
 * **Dynamic Content Handling:** Uses Playwright to render JavaScript-heavy pages.
