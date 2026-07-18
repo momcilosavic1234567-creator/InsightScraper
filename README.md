@@ -1,5 +1,8 @@
 # InsightScraper
 
+<img width="1920" height="1080" alt="Screenshot (135)" src="https://github.com/user-attachments/assets/45a9544d-8a00-4320-9898-7d713f410823" />
+
+
 [![Python Version](https://img.shields.io/badge/python-3.10%2B-blue.svg)](https://www.python.org/)
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
 [![Streamlit App](https://static.streamlit.io/badges/streamlit_badge_black_white.svg)](https://streamlit.io)
