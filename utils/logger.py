@@ -9,6 +9,9 @@ def setup_logger():
     logger = logging.getLogger('InsightScraper')
     logger.setLevel(logging.INFO)
 
+    if logger.handlers:
+        return logger
+
     # Format for logs: Time - Name - Level - Message
     formatter = logging.Formatter('%(asctime)s - %(name)s - %(levelname)s - %(message)s')
 

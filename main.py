@@ -2,12 +2,15 @@ import asyncio
 import json
 import logging
 import os
-import pandas as pd
 from datetime import datetime
+from dotenv import load_dotenv
+import pandas as pd
 from scrapers.engine import ScraperEngine
 from utils.logger import setup_logger
 from utils.database import init_db, save_jobs
 from utils.notifications import check_and_notify_matches
+
+load_dotenv()
 
 # Main Execution
 async def run_pipeline():
@@ -47,35 +50,20 @@ async def run_pipeline():
             return
 
         # 5. Load to DB (Save and deduplicate)
-        new_jobs_count = save_jobs(scraped_data)
-        logger.info(f"SQLite load complete. Added {new_jobs_count} new job listings.")
+        new_jobs = save_jobs(scraped_data)
+        logger.info(f"SQLite load complete. Added {len(new_jobs)} new job listings.")
         
         # 6. Fallback/Backup CSV Save (Optional but good for history)
-        if new_jobs_count > 0:
+        if new_jobs:
             os.makedirs('data', exist_ok=True)
-            df = pd.DataFrame(scraped_data)
+            df = pd.DataFrame(new_jobs)
             timestamp = datetime.now().strftime("%Y-%m-%d_%H-%M")
             filename = f"data/results_{timestamp}.csv"
             df.to_csv(filename, index=False)
             logger.info(f"Historical backup CSV saved to {filename}")
 
-            # 7. Check matches and notify via Discord Webhook
-            # Find the new jobs just scraped (we check the last 'new_jobs_count' scraped elements)
-            # Or filter the scraped data list: only notify if it was newly inserted.
-            # To be simple and robust: we can check the scraped items that were newly inserted.
-            # We can find out which jobs were newly inserted by checking if their links match.
-            # Since WeWorkRemotely / python.org jobs are processed in order, we can pass all scraped_data
-            # and let the notification system process them, or check against database.
-            # Let's filter scraped_data to only those that are newly inserted by checking the DB or just notifying matches
-            # from the whole scrape (which is fine, but to avoid spamming, we can notify on newly inserted ones).
-            # A simple way to get new jobs is to query the DB for jobs created in the last 1 minute:
-            from utils.database import get_all_jobs
-            df_jobs = get_all_jobs()
-            if not df_jobs.empty:
-                # Find jobs with scraped_at close to now, or just status='New'
-                new_db_jobs = df_jobs[df_jobs['status'] == 'New'].to_dict(orient='records')
-                # We can notify for these new_db_jobs
-                check_and_notify_matches(new_db_jobs, config)
+            # 7. Check matches and notify only for newly inserted jobs.
+            check_and_notify_matches(new_jobs, config)
         else:
             logger.info("No new jobs were added. Skipping notification checks.")
         

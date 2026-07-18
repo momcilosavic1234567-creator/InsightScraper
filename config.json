@@ -10,13 +10,16 @@
             "name": "WeWorkRemotely",
             "url": "https://weworkremotely.com/categories/remote-programming-jobs",
             "enabled": true
+        },
+        {
+            "name": "RemoteOK",
+            "url": "https://remoteok.com/remote-dev-jobs",
+            "enabled": true
         }
     ],
     "settings": {
         "headless": true,
-        "max_retries": 3,
         "timeout": 30000,
-        "discord_webhook_url": "",
         "notification_keywords": [
             "remote",
             "django",

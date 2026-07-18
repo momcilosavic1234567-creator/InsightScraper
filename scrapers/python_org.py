@@ -26,20 +26,23 @@ def parse_python_org_jobs(html_content):
             title_link_elem = card.select_one("h2.listing-company span.listing-company-name a")
             if not title_link_elem:
                 continue
-                
+
             title = title_link_elem.get_text(strip=True)
-            relative_link = title_link_elem.get("href", "")
-            link = urljoin(base_url, relative_link)
-            
+            href = title_link_elem.get("href")
+            # BeautifulSoup attribute values can sometimes be lists; normalize to a string
+            if isinstance(href, (list, tuple)):
+                href = href[0] if href else None
+            if not href:
+                continue
+
+            link = urljoin(base_url, str(href))
+
             # 2. Company Name
-            # The company name is text inside span.listing-company-name, after the <br> tag.
             company_span = card.select_one("h2.listing-company span.listing-company-name")
             company = "N/A"
             if company_span:
-                # Get the last text node in the contents
                 strings = list(company_span.stripped_strings)
                 if strings:
-                    # If "New" badge is present, it's at index 0, Title is at index 1, Company is the last string
                     company = strings[-1]
             
             # 3. Location

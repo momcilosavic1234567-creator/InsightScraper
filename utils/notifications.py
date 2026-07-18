@@ -1,4 +1,5 @@
 import logging
+import os
 import requests
 
 logger = logging.getLogger("InsightScraper")
@@ -21,7 +22,7 @@ def send_discord_notification(webhook_url, job):
                 "title": f"💼 New Job Match: {title}",
                 "description": f"A new job matching your keywords has been posted on **{source}**.",
                 "url": link,
-                "color": 5814783,  # Beautiful deep blue color
+                "color": 5814783,
                 "fields": [
                     {"name": "🏢 Company", "value": company, "inline": True},
                     {"name": "📍 Location", "value": location, "inline": True},
@@ -49,14 +50,12 @@ def check_and_notify_matches(new_jobs, config):
     Checks newly scraped jobs against target keywords.
     If a job matches, triggers a notification to Discord (if configured).
     """
-    settings = config.get("settings", {})
-    webhook_url = settings.get("discord_webhook_url", "")
-    
-    # If no webhook url is configured, do not bother filtering or logging notifications
+    webhook_url = os.environ.get("DISCORD_WEBHOOK_URL", "").strip()
     if not webhook_url:
+        logger.warning("DISCORD_WEBHOOK_URL is not set. Discord notifications are disabled.")
         return
-        
-    keywords = settings.get("notification_keywords", [])
+
+    keywords = config.get("settings", {}).get("notification_keywords", [])
     if not keywords:
         logger.warning("Discord Webhook is configured, but notification_keywords is empty.")
         return
@@ -68,14 +67,7 @@ def check_and_notify_matches(new_jobs, config):
         company = job.get("company", "").lower()
         location = job.get("location", "").lower()
         
-        # Check if any keyword matches title, company, or location
-        is_match = False
-        for kw in keywords:
-            kw_lower = kw.lower()
-            if kw_lower in title or kw_lower in company or kw_lower in location:
-                is_match = True
-                break
-                
+        is_match = any(kw.lower() in title or kw.lower() in company or kw.lower() in location for kw in keywords)
         if is_match:
             logger.info(f"🎯 Match found: '{job.get('title')}' at '{job.get('company')}'")
             send_discord_notification(webhook_url, job)

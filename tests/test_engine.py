@@ -1,7 +1,10 @@
+import sqlite3
 import pytest
 from scrapers.engine import ScraperEngine
 from scrapers.python_org import parse_python_org_jobs
+from scrapers.remoteok import parse_remoteok_jobs
 from scrapers.weworkremotely import parse_weworkremotely_jobs
+from utils.database import init_db, save_jobs
 
 @pytest.fixture
 def mock_config():
@@ -123,3 +126,64 @@ def test_weworkremotely_parser():
     assert results[0]["link"] == "https://weworkremotely.com/remote-jobs/a-team-senior-independent-ai-engineer-architect"
     assert results[0]["date_posted"] == "Today"
     assert results[0]["source"] == "WeWorkRemotely"
+
+
+def test_remoteok_parser():
+    """Test that RemoteOK parser extracts title, company, location, and link from sample HTML."""
+    sample_remoteok_html = """
+    <div class="job list">
+        <a class="preventLink" href="/remote-jobs/123-senior-python-engineer">
+            <h2>Senior Python Engineer</h2>
+        </a>
+        <div class="company">Insight Labs</div>
+        <div class="location">Remote - Europe</div>
+        <div class="date">2 days ago</div>
+    </div>
+    """
+    results = parse_remoteok_jobs(sample_remoteok_html)
+    assert len(results) == 1
+    assert results[0]["title"] == "Senior Python Engineer"
+    assert results[0]["company"] == "Insight Labs"
+    assert results[0]["location"] == "Remote - Europe"
+    assert results[0]["link"] == "https://remoteok.com/remote-jobs/123-senior-python-engineer"
+    assert results[0]["date_posted"] == "2 days ago"
+    assert results[0]["source"] == "RemoteOK"
+
+
+def test_database_init_migrates_missing_columns_and_skips_empty_links(tmp_path):
+    """Older database schemas should be migrated and empty links should be ignored."""
+    db_path = tmp_path / "jobs.db"
+    conn = sqlite3.connect(db_path)
+    conn.execute(
+        """
+        CREATE TABLE jobs (
+            id INTEGER PRIMARY KEY AUTOINCREMENT,
+            title TEXT NOT NULL,
+            company TEXT NOT NULL,
+            location TEXT,
+            link TEXT UNIQUE NOT NULL,
+            date_posted TEXT,
+            source TEXT NOT NULL,
+            scraped_at TEXT NOT NULL
+        )
+        """
+    )
+    conn.commit()
+    conn.close()
+
+    init_db(db_path)
+
+    conn = sqlite3.connect(db_path)
+    columns = [row[1] for row in conn.execute("PRAGMA table_info(jobs)")]
+    conn.close()
+
+    assert "status" in columns
+    assert "notes" in columns
+
+    new_jobs = save_jobs([
+        {"title": "Valid", "company": "Acme", "location": "Remote", "link": "https://example.com/job/1", "source": "RemoteOK"},
+        {"title": "Missing Link", "company": "Acme", "location": "Remote", "link": "", "source": "RemoteOK"},
+    ], db_path)
+
+    assert len(new_jobs) == 1
+    assert new_jobs[0]["title"] == "Valid"

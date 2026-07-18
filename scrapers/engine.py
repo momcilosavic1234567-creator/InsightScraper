@@ -4,6 +4,7 @@ import random
 from bs4 import BeautifulSoup
 from playwright.async_api import async_playwright
 from scrapers.python_org import parse_python_org_jobs
+from scrapers.remoteok import parse_remoteok_jobs
 from scrapers.weworkremotely import parse_weworkremotely_jobs
 
 logger = logging.getLogger("InsightScraper")
@@ -19,32 +20,44 @@ class ScraperEngine:
     def __init__(self, config):
         self.config = config
         self.results = []
+        self.browser = None
 
-    async def fetch_page(self, url):
-        """Fetches the page content of the given URL using Playwright."""
+    async def _launch_browser(self):
         settings = self.config.get('settings', {})
         headless = settings.get('headless', True)
+        self._playwright = await async_playwright().start()
+        self.browser = await self._playwright.chromium.launch(headless=headless)
+
+    async def _close_browser(self):
+        if self.browser:
+            await self.browser.close()
+            self.browser = None
+        if getattr(self, '_playwright', None):
+            await self._playwright.stop()
+            self._playwright = None
+
+    async def fetch_page(self, url):
+        """Fetches the page content of the given URL using a shared Playwright browser instance."""
+        settings = self.config.get('settings', {})
         timeout = settings.get('timeout', 30000)
         user_agent = random.choice(USER_AGENTS)
 
-        async with async_playwright() as p:
-            browser = await p.chromium.launch(headless=headless)
-            context = await browser.new_context(user_agent=user_agent)
-            page = await context.new_page()
-            
-            try:
-                logger.info(f"Navigating to {url}...")
-                # Using 'domcontentloaded' is much more resilient and faster than 'networkidle'
-                await page.goto(url, wait_until="domcontentloaded", timeout=timeout)
-                # Give it a short pause to ensure any basic dynamic scripts load
-                await page.wait_for_timeout(1000)
-                content = await page.content()
-                await browser.close()
-                return content
-            except Exception as e:
-                logger.error(f"Error fetching {url}: {e}")
-                await browser.close()
-                raise e
+        if not self.browser:
+            await self._launch_browser()
+
+        context = await self.browser.new_context(user_agent=user_agent)
+        page = await context.new_page()
+        try:
+            logger.info(f"Navigating to {url}...")
+            await page.goto(url, wait_until="domcontentloaded", timeout=timeout)
+            await page.wait_for_timeout(1000)
+            content = await page.content()
+            await context.close()
+            return content
+        except Exception as e:
+            logger.error(f"Error fetching {url}: {e}")
+            await context.close()
+            raise e
 
     def parse_data(self, html_content, source_name="Generic"):
         """
@@ -59,6 +72,8 @@ class ScraperEngine:
             return parse_python_org_jobs(html_content)
         elif source_name == "WeWorkRemotely":
             return parse_weworkremotely_jobs(html_content)
+        elif source_name == "RemoteOK":
+            return parse_remoteok_jobs(html_content)
 
         # Backward compatibility fallback using config selectors (for existing tests)
         selectors = self.config.get('selectors', {})
@@ -90,21 +105,25 @@ class ScraperEngine:
             return []
 
         all_jobs = []
-        for src in sources:
-            if not src.get("enabled", True):
-                logger.info(f"Skipping disabled source: {src.get('name')}")
-                continue
+        try:
+            await self._launch_browser()
+            for src in sources:
+                if not src.get("enabled", True):
+                    logger.info(f"Skipping disabled source: {src.get('name')}")
+                    continue
 
-            name = src.get("name")
-            url = src.get("url")
-            logger.info(f"Scraping source '{name}' from {url}...")
-            
-            try:
-                html = await self.fetch_page(url)
-                jobs = self.parse_data(html, source_name=name)
-                logger.info(f"Successfully scraped {len(jobs)} jobs from {name}")
-                all_jobs.extend(jobs)
-            except Exception as e:
-                logger.error(f"Failed to scrape source {name}: {e}")
+                name = src.get("name")
+                url = src.get("url")
+                logger.info(f"Scraping source '{name}' from {url}...")
+                
+                try:
+                    html = await self.fetch_page(url)
+                    jobs = self.parse_data(html, source_name=name)
+                    logger.info(f"Successfully scraped {len(jobs)} jobs from {name}")
+                    all_jobs.extend(jobs)
+                except Exception as e:
+                    logger.error(f"Failed to scrape source {name}: {e}")
+        finally:
+            await self._close_browser()
 
         return all_jobs
