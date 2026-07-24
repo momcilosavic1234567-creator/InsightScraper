@@ -6,7 +6,7 @@
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
 [![Streamlit App](https://static.streamlit.io/badges/streamlit_badge_black_white.svg)](https://streamlit.io)
 
-<<<<<<< HEAD
+HEAD
 **InsightScraper** is a professional-grade automated ETL pipeline and interactive Job Application Tracker. It dynamically extracts programming job listings from multiple sources, deduplicates and stores them in a local SQLite database, filters them against alert keywords, and presents them in a premium Streamlit dashboard.
 
 **Project Name** is a robust web scraping solution designed to extract data from targeted site. It handles dynamic content, bypasses common rate limits, and exports clean, structured data for analysis.
